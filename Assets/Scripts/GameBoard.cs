@@ -19,13 +19,13 @@ public class GameBoard : MonoBehaviour
         {
             Vector2 pos = o.transform.position;
             
-            if(o.name != "PacMan")
+            if(o.name != "PacMan" && o.name != "Maze" && o.name != "Pellets" && o.name != "Nodes" && o.name != "None Nodes" && o.tag != "Maze" && o.name != "Game")
             {
                 board [(int)pos.x,(int)pos.y] = o;
             }
             else
             {
-                Debug.Log("Found PacMan at:  "+pos);
+                //
             }
         }       
     }

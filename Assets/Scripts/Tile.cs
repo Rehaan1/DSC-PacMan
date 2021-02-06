@@ -7,6 +7,10 @@ public class Tile : MonoBehaviour
 	public bool isPortal;
 	public GameObject portalReceiver;
 
+	public bool isPellet;
+	public bool isSuperPellet;
+	public bool didConsume;
+
 	// Use this for initialization
 	void Start ()
 	{
