@@ -30932,11 +30932,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4054805603444884, guid: 1eef10b537c7c4257a9308f7088fbc19, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -5.39
+      value: -5.4018
       objectReference: {fileID: 0}
     - target: {fileID: 4054805603444884, guid: 1eef10b537c7c4257a9308f7088fbc19, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.5300236
+      value: -0.53801
       objectReference: {fileID: 0}
     - target: {fileID: 4054805603444884, guid: 1eef10b537c7c4257a9308f7088fbc19, type: 3}
       propertyPath: m_LocalPosition.z
@@ -42243,12 +42243,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   neighbours:
   - {fileID: 2120478125}
-  - {fileID: 668031346}
   - {fileID: 1753227237}
+  - {fileID: 668031346}
   validDirections:
   - {x: -1, y: 0}
-  - {x: 0, y: -1}
   - {x: 1, y: 0}
+  - {x: 0, y: -1}
 --- !u!4 &1449526301 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4054805603444884, guid: 1eef10b537c7c4257a9308f7088fbc19,
