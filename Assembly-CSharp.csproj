@@ -37,6 +37,7 @@
   </PropertyGroup>
   <ItemGroup>
      <Compile Include="Assets\Scripts\GameBoard.cs" />
+     <Compile Include="Assets\Scripts\Ghost.cs" />
      <Compile Include="Assets\Scripts\Node.cs" />
      <Compile Include="Assets\Scripts\PacMan.cs" />
      <Compile Include="Assets\Scripts\Tile.cs" />

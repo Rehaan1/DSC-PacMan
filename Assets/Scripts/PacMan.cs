@@ -9,6 +9,8 @@ public class PacMan : MonoBehaviour
     public Sprite idleSprite;
     private Vector2 direction = Vector2.zero;
     private Vector2 nextDirection;
+
+    private int pelletsConsumed = 0;
     private Node currentNode, previousNode, targetNode;
 
     // Start is called before the first frame update
@@ -18,7 +20,6 @@ public class PacMan : MonoBehaviour
         if(node != null)
         {
             currentNode = node;
-            Debug.Log(currentNode);
         }
 
         direction = Vector2.left;
@@ -188,6 +189,8 @@ public class PacMan : MonoBehaviour
                 {
                     o.GetComponent<SpriteRenderer>().enabled = false;
                     tile.didConsume = true;
+                    GameObject.Find("Game").GetComponent<GameBoard>().score += 1;
+                    pelletsConsumed++;
                 }
             }
         }
