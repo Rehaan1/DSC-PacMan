@@ -7,7 +7,15 @@ public class Ghost : MonoBehaviour
 
     public float moveSpeed = 3.9f;
 
+    public float ghostReleaseTimer = 0;
+    public int pinkyReleaseTimer = 5;
+    public int inkyReleaseTimer = 14;
+    public int clydeReleaseTimer = 21;
+
+    public bool isInGhostHouse = false;
+
     public Node startingPosition;
+    public Node homeNode;
 
     public int scatterModeTimer1 = 7;
     public int chaseModeTimer1 = 20;
@@ -21,7 +29,9 @@ public class Ghost : MonoBehaviour
     private float modeChangeTimer = 0;
 
     public enum Mode {Chase,Scatter,Frightened};
+    public enum GhostType{Red,Pink,Blue,Orange};
 
+    public GhostType ghostType = GhostType.Red;
     Mode currentMode = Mode.Scatter;
     Mode previousMode;
 
@@ -40,14 +50,20 @@ public class Ghost : MonoBehaviour
             currentNode = node;
         }
 
-        direction = Vector2.right;
+        if(isInGhostHouse)
+        {
+            direction = Vector2.up;
+            targetNode = currentNode.neighbours[0];
+
+        }
+        else
+        {
+            direction = Vector2.left;
+            targetNode = ChooseNextNode();
+        }
+
         previousNode = currentNode;
 
-        Vector2 pacManPosition = pacMan.transform.position;
-        Vector2 targetTile =  new Vector2(Mathf.RoundToInt(pacManPosition.x),Mathf.RoundToInt(pacManPosition.y));
-        targetNode = GetNodeAtPosition(targetTile);
-
-        Debug.Log(targetNode);
     }
 
     // Update is called once per frame
@@ -55,11 +71,12 @@ public class Ghost : MonoBehaviour
     {
         ModeUpdate();
         Move();
+        ReleaseGhosts();
     }
 
     void Move()
     {
-        if(targetNode != currentNode && targetNode != null)
+        if(targetNode != currentNode && targetNode != null && !isInGhostHouse)
         {
             if(OverShotTarget())
             {
@@ -150,12 +167,156 @@ public class Ghost : MonoBehaviour
 
     }
 
+    Vector2 GetRedGhostTargetTile()
+    {
+        Vector2 pacManPosition = pacMan.transform.localPosition;
+        Vector2 targetTile = new Vector2(Mathf.RoundToInt(pacManPosition.x),Mathf.RoundToInt(pacManPosition.y));
+        return targetTile;
+    }
+
+    Vector2 GetPinkGhostTargetTile()
+    {
+        //Four Tiles Ahead of Pac-man
+        //Taking into account Position and Orientation
+        Vector2 pacManPosition = pacMan.transform.localPosition;
+        Vector2 pacManOrientation = pacMan.GetComponent<PacMan>().orientation;
+
+        int pacManPositionX = Mathf.RoundToInt(pacManPosition.x);
+        int pacManPositionY = Mathf.RoundToInt(pacManPosition.y);
+
+        Vector2 pacManTile = new Vector2(pacManPositionX,pacManPositionY);
+        Vector2 targetTile = pacManTile + (4*pacManOrientation);
+        return targetTile;
+    }
+
+    Vector2 GetBlueGhostTargetTile()
+    {
+        // Select the position  two tiles in front of pacman
+        // Draw a vector from blinky to that position
+        // Double the length of that vector
+
+        Vector2 pacManPosition = pacMan.transform.localPosition;
+        Vector2 pacManOrientation = pacMan.GetComponent<PacMan>().orientation;
+
+        int pacManPositionX = Mathf.RoundToInt(pacManPosition.x);
+        int pacManPositionY = Mathf.RoundToInt(pacManPosition.y);
+
+        Vector2 pacManTile = new Vector2(pacManPositionX,pacManPositionY);
+        Vector2 targetTile = pacManTile + (2*pacManOrientation);
+
+        //Temporary Blinky Position Vector
+        Vector2 tempBlinkyPosition = GameObject.Find("blinky").transform.localPosition;
+
+        int blinkyPositionX = Mathf.RoundToInt(tempBlinkyPosition.x);
+        int blinkyPositionY = Mathf.RoundToInt(tempBlinkyPosition.y);
+        
+        tempBlinkyPosition = new Vector2(blinkyPositionX,blinkyPositionY);
+
+        float distance = GetDistance(tempBlinkyPosition,targetTile);
+        distance *=2;
+
+        targetTile = new Vector2(tempBlinkyPosition.x + distance, tempBlinkyPosition.y + distance);
+
+        return targetTile;
+
+    }
+    Vector2 GetOrangeGhostTargetTile()
+    {
+        //Calculate distance from pacman
+        //if distance greater than eight tiles targeting is same as blinky
+        //else then targeting is his home node
+        Vector2 pacManPosition = pacMan.transform.localPosition;
+        
+        float distance = GetDistance(transform.localPosition, pacManPosition);
+        Vector2 targetTile = Vector2.zero;
+
+        if(distance > 8)
+        {
+            targetTile = new Vector2(Mathf.RoundToInt(pacManPosition.x),Mathf.RoundToInt(pacManPosition.y));
+        }
+        else if(distance < 8)
+        {
+            targetTile  = homeNode.transform.position;
+        }
+        return targetTile;
+    }
+
+    Vector2 GetTargetTile()
+    {
+        Vector2 targetTile = Vector2.zero;
+
+        if(ghostType == GhostType.Red)
+        {
+            targetTile = GetRedGhostTargetTile();
+        }
+        else if(ghostType == GhostType.Pink)
+        {
+            targetTile = GetPinkGhostTargetTile();
+        }
+        else if(ghostType == GhostType.Blue)
+        {
+            targetTile = GetBlueGhostTargetTile();
+        }
+        else if(ghostType == GhostType.Orange)
+        {
+            targetTile = GetOrangeGhostTargetTile();
+        }
+
+        return targetTile;
+    }
+
+    void ReleasePinkGhost()
+    {
+        if(ghostType == GhostType.Pink && isInGhostHouse)
+        {
+            isInGhostHouse = false;
+        }
+    }
+
+    void ReleaseBlueGhost()
+    {
+        if(ghostType == GhostType.Blue && isInGhostHouse)
+        {
+            isInGhostHouse = false;
+        }
+    }
+
+    void ReleaseOrangeGhost()
+    {
+        if(ghostType == GhostType.Orange && isInGhostHouse)
+        {
+            isInGhostHouse = false;
+        }
+    }
+
+    void ReleaseGhosts()
+    {
+        ghostReleaseTimer += Time.deltaTime;
+        if(ghostReleaseTimer > pinkyReleaseTimer)
+        {
+            ReleasePinkGhost();
+        }
+        if(ghostReleaseTimer > inkyReleaseTimer)
+        {
+            ReleaseBlueGhost();
+        }
+        if(ghostReleaseTimer > clydeReleaseTimer)
+        {
+            ReleaseOrangeGhost();
+        }
+    }
     Node ChooseNextNode()
     {
         Vector2 targetTile = Vector2.zero;
 
-        Vector2 pacManPosition = pacMan.transform.position;
-        targetTile =  new Vector2(Mathf.RoundToInt(pacManPosition.x),Mathf.RoundToInt(pacManPosition.y));
+        if(currentMode == Mode.Chase)
+        {
+            targetTile = GetTargetTile();
+        }
+        else if(currentMode == Mode.Scatter)
+        {
+            targetTile = homeNode.transform.position;
+        }
 
         Node moveToNode = null;
         

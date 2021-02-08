@@ -22,7 +22,7 @@ public class GameBoard : MonoBehaviour
         {
             Vector2 pos = o.transform.position;
             
-            if(o.name != "PacMan" && o.name != "Maze" && o.name != "Pellets" && o.name != "Nodes" && o.name != "None Nodes" && o.tag != "Maze" && o.name != "Game")
+            if(o.name != "PacMan" && o.name != "Maze" && o.name != "Pellets" && o.name != "Nodes" && o.name != "None Nodes" && o.tag != "Maze" && o.name != "Game" && o.tag != "Ghost" && o.tag != "GhostHome")
             {
                 if(o.GetComponent<Tile>() != null)
                 {
@@ -31,7 +31,6 @@ public class GameBoard : MonoBehaviour
                         totalPellets++;
                     }
                 }
-
                 board [(int)pos.x,(int)pos.y] = o;
             }
             else
