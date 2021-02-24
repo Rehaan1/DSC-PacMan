@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 8225922792005210362}
   - component: {fileID: 8225922792005210365}
   - component: {fileID: 3918254318766758605}
+  - component: {fileID: 1584447218}
   m_Layer: 0
   m_Name: pinky
   m_TagString: Ghost
@@ -27,7 +28,7 @@ Transform:
   m_GameObject: {fileID: 8225922792005210364}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 15.1, y: 19.01, z: 0}
-  m_LocalScale: {x: -1, y: 1, z: 1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -71,7 +72,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: b9e8ee57f022e1a41ad0794dd4b4d8a5, type: 3}
+  m_Sprite: {fileID: 21300000, guid: c1d99366c218a504dafded7fc64ca76f, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -94,11 +95,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48a88f74528d81c4f88786c0d6c23613, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 3.9
+  moveSpeed: 5.9
   ghostReleaseTimer: 0
   pinkyReleaseTimer: 5
-  isInGhostHouse: 0
+  inkyReleaseTimer: 14
+  clydeReleaseTimer: 21
+  isInGhostHouse: 1
   startingPosition: {fileID: 0}
+  homeNode: {fileID: 0}
   scatterModeTimer1: 7
   chaseModeTimer1: 20
   scatterModeTimer2: 7
@@ -106,4 +110,27 @@ MonoBehaviour:
   scatterModeTimer3: 5
   chaseModeTimer3: 20
   scatterModeTimer4: 5
+  ghostUp: {fileID: 9100000, guid: 7e5e393e3fef55e4790f983bc41e03b3, type: 2}
+  ghostDown: {fileID: 9100000, guid: 5b62fb449a5bc1e43b454f57204c723e, type: 2}
+  ghostLeft: {fileID: 9100000, guid: 214e94a5969e95b49a86590f98221c25, type: 2}
+  ghostRight: {fileID: 9100000, guid: 220c29489f285d941aae4370d30075b3, type: 2}
   ghostType: 1
+--- !u!95 &1584447218
+Animator:
+  serializedVersion: 3
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8225922792005210364}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 0}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorControllerStateOnDisable: 0

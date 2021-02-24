@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 3242279621001193684}
   - component: {fileID: 3242279621001193691}
   - component: {fileID: 8314097251884055906}
+  - component: {fileID: 412773514}
   m_Layer: 0
   m_Name: inky
   m_TagString: Ghost
@@ -71,7 +72,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 9f249ef5fde9e36488990f5ec01af887, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 4bcada8c14c7d0e48ab34f6e2fd22f64, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -94,7 +95,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48a88f74528d81c4f88786c0d6c23613, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 3.9
+  moveSpeed: 5.9
   ghostReleaseTimer: 0
   pinkyReleaseTimer: 5
   inkyReleaseTimer: 14
@@ -109,4 +110,27 @@ MonoBehaviour:
   scatterModeTimer3: 5
   chaseModeTimer3: 20
   scatterModeTimer4: 5
+  ghostUp: {fileID: 9100000, guid: f28527fa3ea9e81479514938ea551d7e, type: 2}
+  ghostDown: {fileID: 9100000, guid: 810b63b22e3cd454285da7d57fce749c, type: 2}
+  ghostLeft: {fileID: 9100000, guid: c8ff2d8d4da769e4ca42d051badc0342, type: 2}
+  ghostRight: {fileID: 9100000, guid: 551171fc3c3caa24bb92be2aa6171c31, type: 2}
   ghostType: 2
+--- !u!95 &412773514
+Animator:
+  serializedVersion: 3
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3242279621001193690}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 0}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorControllerStateOnDisable: 0
