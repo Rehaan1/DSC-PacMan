@@ -4,20 +4,36 @@ using UnityEngine;
 
 public class PacMan : MonoBehaviour
 {
+    public AudioClip chomp1;
+    public AudioClip chomp2;
     public Vector2 orientation;
+
+    public RuntimeAnimatorController chompAnimation;
+    public RuntimeAnimatorController deathAnimation;
+
+
     public float speed= 4.0f;
 
     public Sprite idleSprite;
     private Vector2 direction = Vector2.zero;
     private Vector2 nextDirection;
 
-    private int pelletsConsumed = 0;
     private Node currentNode, previousNode, targetNode;
+
+    private Node startingPosition;
+
+    private bool playedChomp1 = false;
+    public bool canMove = true;
+    private AudioSource audio;
 
     // Start is called before the first frame update
     void Start()
     {
+        audio = transform.GetComponent<AudioSource>();
+
         Node node = GetNodeAtPosition(transform.localPosition);
+
+        startingPosition = node;
         if(node != null)
         {
             currentNode = node;
@@ -26,16 +42,87 @@ public class PacMan : MonoBehaviour
         direction = Vector2.left;
         orientation = Vector2.left;
         ChangePosition(direction);
+
+        if(GameBoard.isPlayerOneUp)
+        {   
+            SetDifficultyForLevel(GameBoard.playerOneLevel);
+        }
+    }
+
+    void SetDifficultyForLevel(int level)
+    {
+
+        if(level == 2)
+        {
+            speed = 7;
+        }
+        else if(level == 3)
+        {
+            speed = 8;
+        }
+        else if(level == 4)
+        {   
+            speed = 9;
+        }
+        else if(level == 5)
+        {
+            speed = 10;
+        }
+    }
+
+    public void MoveToStartingPosition()
+    {
+
+        transform.position = startingPosition.transform.position;
+
+        transform.GetComponent<SpriteRenderer>().sprite=idleSprite;
+
+        direction = Vector2.left;
+        orientation = Vector2.left;
+        UpdateOrientation();
+    }
+
+    public void Restart()
+    {
+
+        canMove = true;
+
+        currentNode = startingPosition;
+
+        nextDirection = Vector2.left;
+
+        transform.GetComponent<Animator>().runtimeAnimatorController = chompAnimation;
+        transform.GetComponent<Animator>().enabled = true;
+
+        ChangePosition(direction);
+
     }
 
     // Update is called once per frame
     void Update()
     {
-        CheckInput();
-        Move();
-        UpdateOrientation();
-        UpdateAnimationState();
-        ConsumePellet();
+        if(canMove)
+        {
+            CheckInput();
+            Move();
+            UpdateOrientation();
+            UpdateAnimationState();
+            ConsumePellet();
+        }
+    }
+
+    void PlayChompSound()
+    {
+        if(playedChomp1)
+        {
+            audio.PlayOneShot(chomp2);
+            playedChomp1 = false;
+        }
+        else
+        {   
+            audio.PlayOneShot(chomp1);
+            playedChomp1 = true;
+        }
     }
 
     void CheckInput()
@@ -195,8 +282,24 @@ public class PacMan : MonoBehaviour
                 {
                     o.GetComponent<SpriteRenderer>().enabled = false;
                     tile.didConsume = true;
-                    GameObject.Find("Game").GetComponent<GameBoard>().score += 1;
-                    pelletsConsumed++;
+                    
+                    if(GameMenu.isOnePlayerGame)
+                    {
+                        GameBoard.playerOneScore += 10;
+                        GameObject.Find("Game").transform.GetComponent<GameBoard>().playerOnePelletsConsumed++;
+                    }
+
+                    PlayChompSound();
+
+                    if(tile.isSuperPellet)
+                    {
+                        GameObject[] ghosts = GameObject.FindGameObjectsWithTag("Ghost");
+                        
+                        foreach(GameObject go in ghosts)
+                        {
+                            go.GetComponent<Ghost>().StartFrightenedMode();
+                        }
+                    }
                 }
             }
         }

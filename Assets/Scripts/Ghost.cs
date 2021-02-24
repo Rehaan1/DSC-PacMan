@@ -5,18 +5,26 @@ using UnityEngine;
 public class Ghost : MonoBehaviour
 {
 
-    public float moveSpeed = 3.9f;
+    public float moveSpeed = 5.9f;
+    public float frightenedModeMoveSpeed = 3.9f;
+    public float consumedMoveSpeed = 15f;
+    public float normalMoveSpeed = 5.9f;
+    private float previousModeSpeed;
 
     public float ghostReleaseTimer = 0;
     public int pinkyReleaseTimer = 5;
     public int inkyReleaseTimer = 14;
     public int clydeReleaseTimer = 21;
+    
+    public int frightenedModeDuration = 10;
+    public int startBlinkingAt = 7;
 
     public bool isInGhostHouse = false;
+    public bool canMove = true;
 
     public Node startingPosition;
     public Node homeNode;
-
+    public Node ghostHouse;
     public int scatterModeTimer1 = 7;
     public int chaseModeTimer1 = 20;
     public int scatterModeTimer2 = 7;
@@ -24,17 +32,35 @@ public class Ghost : MonoBehaviour
     public int scatterModeTimer3 = 5;
     public int chaseModeTimer3 = 20;
     public int scatterModeTimer4 = 5;
+    
+    public Sprite eyesUp;
+    public Sprite eyesDown;
+    public Sprite eyesRight;
+    public Sprite eyesLeft;
+
+    public RuntimeAnimatorController ghostUp;
+    public RuntimeAnimatorController ghostDown;
+    public RuntimeAnimatorController ghostLeft;
+    public RuntimeAnimatorController ghostRight;
+    public RuntimeAnimatorController ghostWhite;
+    public RuntimeAnimatorController ghostBlue;
 
     private int modeChangeIteration = 1;
     private float modeChangeTimer = 0;
 
-    public enum Mode {Chase,Scatter,Frightened};
+    private float frightenedModeTimer  = 0;
+    private float blinkTimer = 0;
+
+    private bool frightenedModeIsWhite = false;
+
+    public enum Mode {Chase,Scatter,Frightened,Consumed};
     public enum GhostType{Red,Pink,Blue,Orange};
 
     public GhostType ghostType = GhostType.Red;
     Mode currentMode = Mode.Scatter;
     Mode previousMode;
 
+    private AudioSource backgroundAudio;
     private GameObject pacMan;
     private Node currentNode, targetNode, previousNode;
     private Vector2 direction, nextDirection;
@@ -43,6 +69,12 @@ public class Ghost : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        if(GameBoard.isPlayerOneUp)
+        {
+            SetDifficultyForLevel(GameBoard.playerOneLevel);
+        }
+
+        //backgroundAudio = GameObject.Find("Game").transform.GetComponent<AudioSource>();
         pacMan = GameObject.FindGameObjectWithTag("PacMan");
         Node node = GetNodeAtPosition(transform.localPosition);
         if(node !=null)
@@ -64,14 +96,288 @@ public class Ghost : MonoBehaviour
 
         previousNode = currentNode;
 
+        UpdateAnimatorController();
+
+    }
+
+    void SetDifficultyForLevel(int level)
+    {
+        if(level == 2)
+        {
+            scatterModeTimer1 = 7;
+            scatterModeTimer2 = 7;
+            scatterModeTimer3 = 5;
+            scatterModeTimer4 = 1;
+
+            chaseModeTimer1 = 20;
+            chaseModeTimer2 = 20;
+            chaseModeTimer3 = 1033;
+
+            frightenedModeDuration = 9;
+            startBlinkingAt = 6;
+
+            pinkyReleaseTimer = 4;
+            inkyReleaseTimer = 12;
+            clydeReleaseTimer = 18;
+
+            moveSpeed = 6.9f;
+            normalMoveSpeed = 6.9f;
+            frightenedModeMoveSpeed = 3.9f;
+            consumedMoveSpeed = 18f;
+        }
+        else if(level == 3)
+        {
+            scatterModeTimer1 = 7;
+            scatterModeTimer2 = 7;
+            scatterModeTimer3 = 5;
+            scatterModeTimer4 = 1;
+
+            chaseModeTimer1 = 20;
+            chaseModeTimer2 = 20;
+            chaseModeTimer3 = 1033;
+
+            frightenedModeDuration = 8;
+            startBlinkingAt = 5;
+
+            pinkyReleaseTimer = 3;
+            inkyReleaseTimer = 10;
+            clydeReleaseTimer = 15;
+
+            moveSpeed = 7.9f;
+            normalMoveSpeed = 7.9f;
+            frightenedModeMoveSpeed = 4.9f;
+            consumedMoveSpeed = 20f;
+        }
+        else if(level == 4)
+        {   
+            scatterModeTimer1 = 7;
+            scatterModeTimer2 = 7;
+            scatterModeTimer3 = 5;
+            scatterModeTimer4 = 1;
+
+            chaseModeTimer1 = 20;
+            chaseModeTimer2 = 20;
+            chaseModeTimer3 = 1033;
+
+            frightenedModeDuration = 7;
+            startBlinkingAt = 4;
+
+            pinkyReleaseTimer = 2;
+            inkyReleaseTimer = 8;
+            clydeReleaseTimer = 13;
+
+            moveSpeed = 7.9f;
+            normalMoveSpeed = 7.9f;
+            frightenedModeMoveSpeed = 5.9f;
+            consumedMoveSpeed = 22f;
+        }
+        else if(level == 5)
+        {
+            scatterModeTimer1 = 5;
+            scatterModeTimer2 = 5;
+            scatterModeTimer3 = 5;
+            scatterModeTimer4 = 1;
+
+            chaseModeTimer1 = 20;
+            chaseModeTimer2 = 20;
+            chaseModeTimer3 = 1037;
+
+            frightenedModeDuration = 6;
+            startBlinkingAt = 3;
+
+            pinkyReleaseTimer = 2;
+            inkyReleaseTimer = 6;
+            clydeReleaseTimer = 10;
+
+            moveSpeed = 9.9f;
+            normalMoveSpeed = 9.9f;
+            frightenedModeMoveSpeed = 6.9f;
+            consumedMoveSpeed = 24f;
+        }
+    }
+
+    public void MoveToStartingPosition()
+    {
+        if(transform.name != "blinky")
+        {
+            isInGhostHouse = true;
+        }
+
+        transform.position = startingPosition.transform.position;
+
+        if(isInGhostHouse)
+        {
+            direction = Vector2.up;
+        }
+        else
+        {
+            direction = Vector2.left;
+        }
+        UpdateAnimatorController();
+    }
+    public void Restart()
+    {
+        canMove = true;
+
+        currentMode = Mode.Scatter;
+
+        moveSpeed = normalMoveSpeed;
+
+        previousModeSpeed = 0;
+
+        ghostReleaseTimer = 0;
+        modeChangeTimer = 0;
+        modeChangeIteration = 1;
+
+        
+
+        currentNode =  startingPosition;
+
+        if(isInGhostHouse)
+        {
+            direction = Vector2.up;
+            targetNode = currentNode.neighbours[0];
+        }
+        else
+        {
+            direction = Vector2.left;
+            targetNode = ChooseNextNode();
+        }
+        previousNode = currentNode;
     }
 
     // Update is called once per frame
     void Update()
+    {   
+        if(canMove)
+        {
+            ModeUpdate();
+            Move();
+            ReleaseGhosts();
+            CheckCollision();
+            CheckIsInGhostHouse();
+        }
+    }
+
+    void CheckIsInGhostHouse()
     {
-        ModeUpdate();
-        Move();
-        ReleaseGhosts();
+        if(currentMode == Mode.Consumed)
+        {
+            GameObject tile = GetTileAtPosition(transform.position);
+            if( tile != null)
+            {
+                if(tile.transform.GetComponent<Tile>() != null)
+                {
+                    if(tile.transform.GetComponent<Tile>().isGhostHouse)
+                    {
+                        moveSpeed = normalMoveSpeed;
+                        Node node = GetNodeAtPosition(transform.position);
+                        
+                        if(node != null)
+                        {
+                            currentNode = node;
+                           
+                            direction = Vector2.up;
+                            targetNode = currentNode.neighbours[0];
+                           
+                            previousNode = currentNode;
+                           
+                            currentMode = Mode.Chase;
+                           
+                            UpdateAnimatorController();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    void CheckCollision()
+    {
+        Rect ghostRect = new Rect(transform.position, transform.GetComponent<SpriteRenderer>().sprite.bounds.size / 4);
+        Rect pacManRect = new Rect(pacMan.transform.position, pacMan.transform.GetComponent<SpriteRenderer>().sprite.bounds.size /4);
+        
+        if(ghostRect.Overlaps(pacManRect))
+        {
+            if(currentMode == Mode.Frightened)
+            {
+                Consumed();
+            }
+            else 
+            {
+                if(currentMode != Mode.Consumed){
+                //PACMAN SHOULD DIE
+                
+                GameObject.Find("Game").transform.GetComponent<GameBoard>().StartDeath();
+                }
+            }
+        }
+
+    }
+
+    void Consumed()
+    {
+
+        if(GameMenu.isOnePlayerGame)
+        {
+            GameBoard.playerOneScore +=200;
+        }
+        currentMode = Mode.Consumed;
+        previousModeSpeed = moveSpeed;
+        moveSpeed = consumedMoveSpeed;
+        UpdateAnimatorController();
+
+        GameObject.Find("Game").transform.GetComponent<GameBoard>().StartConsumed(this.GetComponent<Ghost>());
+    }
+    void UpdateAnimatorController()
+    {
+        if(currentMode != Mode.Frightened && currentMode != Mode.Consumed)
+        {
+            if(direction == Vector2.up)
+            {
+                transform.GetComponent<Animator>().runtimeAnimatorController = ghostUp;
+            }
+            else if(direction == Vector2.down)
+            {
+                transform.GetComponent<Animator>().runtimeAnimatorController = ghostDown;
+            }
+            else if(direction == Vector2.left)
+            {
+                transform.GetComponent<Animator>().runtimeAnimatorController = ghostLeft;
+            }
+            else if(direction == Vector2.right)
+            {
+                transform.GetComponent<Animator>().runtimeAnimatorController = ghostRight;
+            }
+            else
+            {
+                transform.GetComponent<Animator>().runtimeAnimatorController = ghostLeft;
+            }
+        }
+        else if(currentMode == Mode.Frightened)
+        {
+            transform.GetComponent<Animator>().runtimeAnimatorController = ghostBlue;
+        }
+        else if(currentMode == Mode.Consumed)
+        {
+            transform.GetComponent<Animator>().runtimeAnimatorController = null;
+            if(direction == Vector2.up)
+            {
+                transform.GetComponent<SpriteRenderer>().sprite = eyesUp;
+            } 
+            else if(direction == Vector2.down)
+            {
+                transform.GetComponent<SpriteRenderer>().sprite = eyesDown;
+            } 
+            else if(direction == Vector2.left)
+            {
+                transform.GetComponent<SpriteRenderer>().sprite = eyesLeft;
+            } 
+            else if(direction == Vector2.right)
+            {
+                transform.GetComponent<SpriteRenderer>().sprite = eyesRight;
+            } 
+        }
     }
 
     void Move()
@@ -92,6 +398,8 @@ public class Ghost : MonoBehaviour
                 targetNode = ChooseNextNode();
                 previousNode = currentNode;
                 currentNode = null;
+
+                UpdateAnimatorController();
             }
             else
             {
@@ -157,14 +465,67 @@ public class Ghost : MonoBehaviour
         }
         else if(currentMode == Mode.Frightened)
         {
-
+            frightenedModeTimer += Time.deltaTime;
+            if(frightenedModeTimer >= frightenedModeDuration)
+            {
+                //backgroundAudio.clip = GameObject.Find("Game").transform.GetComponent<GameBoard>().backgroundAudioNormal;
+                //backgroundAudio.Play();
+                frightenedModeTimer = 0;
+                ChangeMode(previousMode);
+            }
+            if(frightenedModeTimer >= startBlinkingAt)
+            {
+                blinkTimer += Time.deltaTime;
+                if(blinkTimer >= 0.1f)
+                {
+                    blinkTimer = 0f;
+                    if(frightenedModeIsWhite)
+                    {
+                        transform.GetComponent<Animator>().runtimeAnimatorController = ghostBlue;
+                        frightenedModeIsWhite = false;
+                    }
+                    else
+                    {
+                        transform.GetComponent<Animator>().runtimeAnimatorController = ghostWhite;
+                        frightenedModeIsWhite = true;
+                    }
+                }
+            }
         }
     }
 
     void ChangeMode(Mode m)
     {
-        currentMode = m;
+        if(currentMode == Mode.Frightened)
+        {
+            moveSpeed = previousModeSpeed;
+        }
 
+        if(m == Mode.Frightened)
+        {
+            previousModeSpeed = moveSpeed ;
+            moveSpeed = frightenedModeMoveSpeed;
+        }
+
+        if(currentMode != m)
+        {
+            previousMode = currentMode;
+            currentMode = m;
+        }
+
+        UpdateAnimatorController();
+
+    }
+
+    public void StartFrightenedMode()
+    {
+        if(currentMode != Mode.Consumed)
+        {
+            frightenedModeTimer = 0;
+            //backgroundAudio.clip = GameObject.Find("Game").transform.GetComponent<GameBoard>().backgroundAudioFrightened;
+            //backgroundAudio.Play();
+            ChangeMode(Mode.Frightened);
+        }
     }
 
     Vector2 GetRedGhostTargetTile()
@@ -265,6 +626,14 @@ public class Ghost : MonoBehaviour
         return targetTile;
     }
 
+    Vector2 GetRandomTile()
+    {
+        int x = Random.Range(0,28);
+        int y = Random.Range(0,36);
+
+        return new Vector2(x,y);
+    }
+
     void ReleasePinkGhost()
     {
         if(ghostType == GhostType.Pink && isInGhostHouse)
@@ -317,6 +686,14 @@ public class Ghost : MonoBehaviour
         {
             targetTile = homeNode.transform.position;
         }
+        else if(currentMode == Mode.Frightened)
+        {
+            targetTile = GetRandomTile();
+        }
+        else if(currentMode == Mode.Consumed)
+        {
+            targetTile = ghostHouse.transform.position;
+        }
 
         Node moveToNode = null;
         
@@ -329,9 +706,33 @@ public class Ghost : MonoBehaviour
         {
             if(currentNode.validDirections[i] != direction*-1)
             {
-                foundNodes[nodeCounter] = currentNode.neighbours[i];
-                foundNodesDirection[nodeCounter] = currentNode.validDirections[i];
-                nodeCounter++;
+                if(currentMode != Mode.Consumed)
+                {
+                    GameObject tile = GetTileAtPosition(currentNode.transform.position);
+                    
+                    if(tile.transform.GetComponent<Tile>().isGhostHouseEntrance == true)
+                    {
+                        //FOUND GHOST HOUSE, don't want to allow movement
+                        if(currentNode.validDirections[i] != Vector2.down)
+                        {
+                            foundNodes[nodeCounter] = currentNode.neighbours[i];
+                            foundNodesDirection[nodeCounter] = currentNode.validDirections[i];
+                            nodeCounter++;
+                        }
+                    }
+                    else
+                    {
+                        foundNodes[nodeCounter] = currentNode.neighbours[i];
+                        foundNodesDirection[nodeCounter] = currentNode.validDirections[i];
+                        nodeCounter++;
+                    }
+                }
+                else
+                {
+                    foundNodes[nodeCounter] = currentNode.neighbours[i];
+                    foundNodesDirection[nodeCounter] = currentNode.validDirections[i];
+                    nodeCounter++;
+                }
             }
         }
 
@@ -371,6 +772,20 @@ public class Ghost : MonoBehaviour
             {
                 return tile.GetComponent<Node>();
             }
+        }
+        return null;
+    }
+
+    GameObject GetTileAtPosition(Vector2 pos)
+    {
+        int tileX = Mathf.RoundToInt(pos.x);
+        int tileY = Mathf.RoundToInt(pos.y);
+
+        GameObject tile = GameObject.Find("Game").GetComponent<GameBoard>().board[(int)tileX,(int)tileY];
+        
+        if(tile != null)
+        {
+            return tile;
         }
         return null;
     }
